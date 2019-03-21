@@ -100,15 +100,21 @@ static int my_open(struct inode *inode, struct file *file)
  */
 static ssize_t my_write(struct file *file, const char __user *ubuf, size_t count, loff_t *ppos)
 {
+	static int pos=0;
+	unsigned long adr=0;
 	if(count > BUFSIZE)
 		buffersize= BUFSIZE;
 	else buffersize=count;
 
-	if(copy_from_user(inbuf, ubuf, buffersize))
+	if(*ppos==0)adr=(inbuf+pos);
+	else adr=inbuf+*ppos;
+	if(copy_from_user(adr, ubuf, buffersize))
 	{
 		printk(KERN_ALERT "copy from user in mywrit  error\n");
 		return -EFAULT;
 	}
+	*ppos+=count;
+	pos+=count;
 	return buffersize;
 }
 
